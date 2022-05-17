@@ -17,7 +17,11 @@ class CreateStudentsTable extends Migration
             $table->id();
 			$table->string('student_name');
 			$table->string('student_surname');
+			$table->unsignedBigInteger('student_group_id')->nullable()->default(null);
+			$table->foreign('student_group_id')->references('id')->on('groups');			
 			$table->string('student_group_title')->nullable()->default(null);
+			$table->unsignedBigInteger('student_project_id')->nullable()->default(null);
+			$table->foreign('student_project_id')->references('id')->on('projects');
 			$table->string('student_project_title')->nullable()->default(null);
             $table->timestamps();
         });
