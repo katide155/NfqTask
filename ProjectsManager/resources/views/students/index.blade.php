@@ -33,6 +33,7 @@
 						<th>Name</th>
 						<th>Surname</th>
 						<th>Student group</th>
+						<th>Student project</th>
 						<th style="width: 180px;">
 							<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="clearValues()">Add new student</button>
 						</th>
@@ -40,33 +41,283 @@
 				</thead>
 				
 				<tbody>
-
+				@foreach($students as $student)
 					<tr>
-						<td><div></div></td>
-						<td><div></div></td>
-						<td><div></div></td>
+						<td>
+							<input type="hidden" id="student_api_id_{{$student->id}}" student_api_id="{{$student->api_student_id}}" />
+							<div id="student_name_{{$student->id}}">{{$student->student_name}}</div>
+						</td>
+						<td><div id="student_surname_{{$student->id}}">{{$student->student_surname}}</div></td>
+						<td>
+							<div id="student_group_title_{{$student->id}}">
+								@foreach ($groups as $group)
+									@if($student->student_group_id == $group->id)
+										<input type="hidden" id="student_group_title_{{$student->id}}" value="{{$student->student_group_title}}">
+										<a href="{{route('group.show',[$group])}}">{{$group->group_title}}</a>
+									@endif
+								@endforeach
+							</div>
+						</td>
+						<td>
+							<div id="student_project_title_{{$student->id}}">
+								@foreach ($projects as $project)
+									@if($student->student_project_id == $project->id)
+										<input type="hidden" id="student_project_title_{{$student->id}}" value="{{$student->student_project_title}}">
+										<a href="{{route('project.show',[$project])}}">{{$project->project_title}}</a>
+									@endif
+								@endforeach								
+							</div>
+						</td>
 						<td>
 							<div class="btn-container">
-								<button type="button" class="btn btn-success" data-bs-id="1" data-bs-toggle="modal" data-bs-target="#exampleModal">Edit</button>
-								<button type="submit" class="btn btn-danger">Delete</button>
-								<button type="submit" class="btn btn-primary">Show</button>
+								<button type="button" class="btn btn-success dbfl edit-item act-item" data-bs-id="1" data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="setIdToEdit({{$student->id}})">
+									..<span class="tooltipas">Edit</span>
+								</button>
+								<button type="submit" name="delete_child" class="btn btn-dangeris dbfl delete-student act-item" student_api_id="{{$student->api_student_id}}">x<span class="tooltipas">Delete</span></button>
+								<a  type="button" href="{{route('student.show',[$student])}}" class="btn btn-primary dbfl show-item act-item"><span class="tooltipas">Show</span></a>
 							</div>
 						</td>
 					</tr>
-
+				@endforeach
 				</tbody>
 				
 			</table>
+			{!! $students->links() !!}
+			
+			
+			<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+				<div class="modal-dialog modal-dialog-centered">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title" id="exampleModalLabel">Student data</h5>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+						</div>
+						<div class="modal-body">
+							<div class="row g-3 align-items-center">
+								<div class="col-4">
+									<input type="hidden" id="student_api_id" name="student_api_id" />
+									<label for="student_name" class="col-form-label">Student name</label>
+								</div>
+								<div class="col-8">
+									<input type="text" id="student_name" name="student_name" class="form-control" aria-describedby="passwordHelpInline">
+									<span class="invalid-feedback input_student_name" role="alert"></span>
+								</div>
+							</div>
+						</div>
+						<div class="modal-body">
+							<div class="row g-3 align-items-center">
+							  <div class="col-4">
+								<label for="student_surname" class="col-form-label">Student surname</label>
+							  </div>
+							  <div class="col-8">
+								<input type="text" id="student_surname" name="student_surname" class="form-control"  aria-describedby="passwordHelpInline">
+								<span class="invalid-feedback input_student_surname" role="alert"></span>
+							  </div>
+							</div>
+						</div>
+						<div class="modal-body">
+							<div class="row g-3 align-items-center">
+							  <div class="col-4">
+								<label for="student_group_title" class="col-form-label">Student group</label>
+							  </div>
+								<div class="col-8">
+									<select id="student_group_title" class="form-control" aria-label=".form-select-sm example" name="student_group_title">
+										@foreach ($groups as $group)
+										<option value="{{$group->group_title}}">{{$group->group_title}}</option>
+										@endforeach
+									</select>
+									<span class="invalid-feedback input_student_group_title" role="alert"></span>
+								</div>
+							</div>
+						</div>
+						<div class="modal-body">
+							<div class="row g-3 align-items-center">
+							  <div class="col-4">
+								<label for="student_project_title" class="col-form-label">Student project</label>
+							  </div>
+								<div class="col-8">
+									<select id="student_project_title" class="form-control" aria-label=".form-select-sm example" name="student_project_title">
+										@foreach ($projects as $project)
+										<option value="{{$project->project_title}}">{{$project->project_title}}</option>
+										@endforeach
+									</select>
+									<span class="invalid-feedback input_student_project_title" role="alert"></span>
+								</div>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+							<button class="btn btn-success" type="submit" id="save_student">Save</button>
+							<button class="btn btn-success" type="submit" id="edit_student">Edit</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			
 			@endif
 		</div>
 	</div>
 </div>
 
 	<script>
+	
+		$.ajaxSetup({
+			
+			headers:{
+				"X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr('content')
+			}
+			
+		});
+		
+		function clearValues(){
+			$('#edit_student').addClass("d-none");
+			$('#save_student').removeClass("d-none");
+			$('.is-invalid').removeClass('is-invalid');
+			setElementValue('student_name', '');
+			setElementValue('student_surname', '');
+			setElementValue('student_group_title', '');
+			document.getElementById('student_group_title').selected = false;
+			setElementValue('student_project_title', '');
+			document.getElementById('student_project_title').selected = false;
+			$('.is-invalid').removeClass('is-invalid');
+		};
+		
+
+		
+		function setIdToEdit(id){
+			
+			if(id){
+				$('#save_student').addClass("d-none");
+				$('#edit_student').removeClass("d-none");
+				$('.is-invalid').removeClass('is-invalid');
+				let student_api_id = document.getElementById('student_api_id_'+id).getAttribute('student_api_id');
+				setElementValue('student_api_id', student_api_id);
+				let student_name = getElementInner('student_name_' + id);
+				setElementValue('student_name', student_name);
+				let student_surname = getElementInner('student_surname_' + id);
+				setElementValue('student_surname', student_surname);
+				let student_group_title = getElementValue('student_group_title_' + id);
+				document.getElementById('student_group_title').value = student_group_title;
+				let student_project_title = getElementValue('student_project_title_' + id);
+				document.getElementById('student_project_title').value = student_project_title;
+			}
+			
+		};
+		
+		
+		
 		$(document).ready(function(){
-			console.log('yra');
-			//$.ajax();
-		})
+			
+
+			
+			$('#save_student').click(function(){
+				
+				let student_name = $('#student_name').val();
+				let student_surname = $('#student_surname').val();
+				let student_group_title = $('#student_group_title').val();
+				let student_project_title = $('#student_project_title').val();
+				
+		
+				$.ajax({
+					type: 'POST',
+					url: 'http://127.0.0.1:8080/api/students',
+					data: {student_name:student_name, student_surname:student_surname, student_group_title:student_group_title, student_project_title:student_project_title},
+					success: function(data){
+						if($.isEmptyObject(data.error_message)){
+							$('#alert').removeClass("d-none");
+							$('#alert').html(data.success_message);
+							
+							$('#exampleModal').hide();
+							$('body').removeClass('modal-open');
+							$('.modal-backdrop').remove();
+							$('body').css({overflow:'auto'});
+							
+							$('#student_name').val('');
+							$('#student_surname').val('');
+							$('#student_project_title').val('');
+							runDataUpdate();
+							location.reload();
+						}else{						
+							$('.is-invalid').removeClass('is-invalid');
+							$.each(data.errors, function(key, error){
+								console.log(key);
+								$('#'+key).addClass('is-invalid');
+								$('.input_'+key).html(error);
+							});
+						}
+						
+
+					}
+					
+				});
+			});
+			
+			
+			$('#edit_student').click(function(){
+				
+				let student_api_id = $('#student_api_id').val();
+				let student_name = $('#student_name').val();
+				let student_surname = $('#student_surname').val();
+				let student_group_title = $('#student_group_title').val();
+				let student_project_title = $('#student_project_title').val();
+				console.log(student_api_id);
+		
+				$.ajax({
+					type: 'PUT',
+					url: 'http://127.0.0.1:8080/api/students/'+student_api_id,
+					data: {student_name:student_name, student_surname:student_surname, student_group_title:student_group_title, student_project_title:student_project_title},
+					success: function(data){
+						console.log(data);
+						if($.isEmptyObject(data.error_message)){
+							$('#alert').removeClass("d-none");
+							$('#alert').html(data.success_message);
+							
+							$('#exampleModal').hide();
+							$('body').removeClass('modal-open');
+							$('.modal-backdrop').remove();
+							$('body').css({overflow:'auto'});
+							
+							$('#student_name').val('');
+							$('#student_surname').val('');
+							$('#student_project_title').val('');
+							runDataUpdate();
+							location.reload();
+						}else{						
+							$('.is-invalid').removeClass('is-invalid');
+							$.each(data.errors, function(key, error){
+								console.log(key);
+								$('#'+key).addClass('is-invalid');
+								$('.input_'+key).html(error);
+							});
+						}
+					}
+				});
+			});
+			
+			$(document).on('click', '.delete-student', function(){	
+			
+				let	studentId = $(this).attr('student_api_id');
+				$.ajax({
+					type: 'DELETE',
+					url: 'http://127.0.0.1:8080/api/students/'+studentId,
+					success: function(data){
+						if($.isEmptyObject(data.error_message)){
+							runDataUpdate();
+							location.reload();	
+						}
+					}
+					
+				});
+			
+			});
+			
+			function runDataUpdate(){
+				$.ajax({
+					type: 'POST',
+					url: '{{route("student.store")}}'
+				});
+			};
+		});
 	</script>
 
 @endsection

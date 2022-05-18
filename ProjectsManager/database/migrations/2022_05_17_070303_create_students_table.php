@@ -23,6 +23,7 @@ class CreateStudentsTable extends Migration
 			$table->unsignedBigInteger('student_project_id')->nullable()->default(null);
 			$table->foreign('student_project_id')->references('id')->on('projects');
 			$table->string('student_project_title')->nullable()->default(null);
+			$table->unsignedBigInteger('api_student_id');
             $table->timestamps();
         });
     }
