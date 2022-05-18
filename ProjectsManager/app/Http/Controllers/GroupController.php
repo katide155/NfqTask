@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Group;
 use App\Http\Requests\StoreGroupRequest;
 use App\Http\Requests\UpdateGroupRequest;
+use Illuminate\Http\Request;
 
 class GroupController extends Controller
 {
@@ -15,7 +16,8 @@ class GroupController extends Controller
      */
     public function index()
     {
-        //
+        $groups = Group::all();
+		return view('groups.index', ['groups'=>$groups]);
     }
 
     /**
@@ -25,7 +27,7 @@ class GroupController extends Controller
      */
     public function create()
     {
-        //
+        return view('groups.create');
     }
 
     /**
@@ -34,9 +36,16 @@ class GroupController extends Controller
      * @param  \App\Http\Requests\StoreGroupRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(StoreGroupRequest $request)
+    public function store(Request $request, Group $group)
     {
-        //
+		if(!$group)
+			$group = new Group;
+		$group->group_title = $request->group_title;
+		$group->max_number_students_in_group = $request->max_number_students_in_group;
+		$group->group_project_id = $request->group_project_id;
+		
+		$group->save();
+		return redirect()->route('group.index');
     }
 
     /**
@@ -47,7 +56,7 @@ class GroupController extends Controller
      */
     public function show(Group $group)
     {
-        //
+        return view('groups.show', ['group'=>$group]);
     }
 
     /**
@@ -58,7 +67,8 @@ class GroupController extends Controller
      */
     public function edit(Group $group)
     {
-        //
+		
+        return view('groups.edit', ['group'=>$group]);
     }
 
     /**
@@ -68,9 +78,14 @@ class GroupController extends Controller
      * @param  \App\Models\Group  $group
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateGroupRequest $request, Group $group)
+    public function update(Request $request, Group $group)
     {
-        //
+       	$group->group_title = $request->group_title;
+		$group->max_number_students_in_group = $request->max_number_students_in_group;
+		$group->group_project_id = $request->group_project_id;
+		
+		$group->save();
+		return redirect()->route('group.index');
     }
 
     /**
@@ -79,8 +94,9 @@ class GroupController extends Controller
      * @param  \App\Models\Group  $group
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Group $group)
+    public function destroy(Group $group, $page)
     {
-        //
+        $group->delete();
+		return redirect()->route('group.index')->with('success_message', 'Sėkmingai ištrinta');
     }
 }
