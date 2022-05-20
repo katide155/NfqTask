@@ -53,17 +53,10 @@
 			  <tr>
 				<td>{{ $i++; }}</td>
 				<td><div id="project_title_{{$project->id}}">{{$project->project_title}}</div></td>
-				<td><div>{{count($project->projectGroups)}}<div></div></div>
-				{{--@foreach ($groups as $group)
-					@if($project->project_group_id == $group->id)
-						<input type="hidden" id="project_group_id_{{$project->id}}" value="{{$project->project_group_id}}">
-						<a href="{{route('group.show',[$group])}}">{{$group->group_title}}</a>
-					@endif
-				@endforeach--}}
-				</td>
+				<td><div>{{count($project->projectGroups)}}<div></td>
 				<td><div id="project_max_student_number_{{$project->id}}">{{$project->max_number_students_in_group}}</div></td>
 				<td><div id="project_max_student_number_{{$project->id}}">{{$project->max_number_students_in_group * $project->number_of_groups}}</div></td>
-				<td><div id="project_students_number_{{$project->id}}">0</div></td>
+				<td><div id="project_students_number_{{$project->id}}">{{$project->project_students}}</div></td>
 				<td>
 					<div class="btn-container">
 						<a  type="button" href="{{route('project.edit',[$project])}}" class="btn btn-success dbfl edit-item act-item">..<span class="tooltipas">Edit</span></a>

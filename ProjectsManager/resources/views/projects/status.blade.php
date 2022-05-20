@@ -13,16 +13,10 @@
 	<div class="row">
 		
 		<div class="col-12">
-			@if(session()->has('error_message'))
-				<div class="alert alert-danger">
-					{{session()->get('error_message')}}
+
+				<div id="alert" class="alert d-none">
 				</div>
-			@endif
-			@if(session()->has('success_message'))
-				<div class="alert alert-success">
-					{{session()->get('success_message')}}
-				</div>
-			@endif
+
 			
 			@if(count($projectStudents) == 0)
 				
@@ -52,12 +46,12 @@
 						<td>{{ $i++; }}</td>
 						<td><div>{{$student->student_name}} {{$student->student_surname}}</div></td>
 						<td>
-							<a href="{{route('group.show',[$student->studentGroup])}}">{{$student->studentGroup->group_title}}</a>
+							{{$student->student_group_title}}
 						</td>
 						<td>
 						<div class="btn-container">
 							<a  type="button" href="{{route('student.edit',[$student])}}" class="btn btn-success dbfl edit-item act-item">..<span class="tooltipas">Edit</span></a>
-							<form method="post" action="{{route('student.destroy',[$student])}}" class="dbfl">
+							<form method="post" action="{{route('student.delete',[$student])}}" class="dbfl">
 								@csrf
 								<button type="submit" name="delete_student" class="btn btn-dangeris dbfl delete-item act-item">x<span class="tooltipas">Delete</span></button>
 							</form>
@@ -69,19 +63,18 @@
 				</tbody>
 				
 			</table>
-			{!! $students->links() !!}
+	
 			@endif
-			
-			
+			<h2>Project groups</h2>			
+			<p><a class="btn btn-success"  href="{{route('group.create')}}">Add new group</a></p>			
 			@if(count($projectGroups) == 0)
 				
 			<p>There are no groups in this project</p>
 			
-			<p><a class="btn btn-success"  href="{{route('group.create')}}">Add new group</a></p>
+
 			
 			@else
-			<h2>Project groups</h2>
-				<p><a class="btn btn-success"  href="{{route('group.create')}}">Add new group</a></p>
+
 
 				<div class="row">
 					@foreach ($projectGroups as $group)
@@ -93,7 +86,7 @@
 								<ul class="list-group list-group-flush">
 									@for($x = 1; $x <= $group->max_number_students_in_group; $x++)
 									<li class="list-group-item">
-										<select class="form-select form-select-sm" aria-label=".form-select-sm example">
+										<select class="form-select form-select-sm assign-student-to-group" group-title="{{$group->group_title}}" project-title="{{$project->project_title}}"aria-label=".form-select-sm example">
 											<option selected>Assign student to group</option>
 											@foreach ($students as $student)
 												<option value="{{$student->api_student_id}}">{{$student->student_name}} {{$student->student_surname}}</option>
@@ -107,6 +100,61 @@
 					@endforeach
 				</div>
 			@endif
+			
+			
+			<script>
+			
+			let csrf = '123456789';
+			
+			$(document).ready(function(){
+
+				
+				$(document).on('change', '.assign-student-to-group', function(){	
+
+					let student_id = $(this).val();
+					let student_name_surname = $(this).find(":selected").text();
+					const name_surname = student_name_surname.split(" ");
+					let student_name = name_surname[0];
+					let student_surname = name_surname[1];
+					let student_group_title = $(this).attr('group-title');
+					let student_project_title = $(this).attr('project-title');
+					
+					
+			
+					$.ajax({
+						type: 'PUT',
+						url: 'http://127.0.0.1:8080/api/students/'+student_id,
+						data: {csrf:csrf, student_id:student_id, student_name:student_name, student_surname:student_surname, student_group_title:student_group_title, student_project_title:student_project_title},
+						success: function(data){
+							
+							$('#alert').removeClass("alert-success");
+							$('#alert').removeClass("alert-danger");
+							//console.log(data.success_message);
+							if($.isEmptyObject(data.error_message)){
+									$('#alert').removeClass("d-none");
+									$('#alert').addClass("alert-success"); 
+									$('#alert').html(data.success_message);
+							
+							}else{
+									$('#alert').removeClass("d-none");
+									$('#alert').addClass("alert-danger");
+									let error_massages;
+									$.each(data.errors, function(key, error){
+										error_massages += '<span>'+error+'</span></br>';
+									});
+									$('#alert').html(error_massages);
+							}
+							
+
+						}
+						
+					});
+					
+				});
+				
+			});
+			
+			</script>
 		</div>
 	</div>	
 </div>

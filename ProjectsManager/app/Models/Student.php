@@ -9,7 +9,4 @@ class Student extends Model
 {
     use HasFactory;
 	
-	public function studentGroup(){
-		return $this->belongsTo(Group::class, 'student_group_id', 'id');
-	}
 }

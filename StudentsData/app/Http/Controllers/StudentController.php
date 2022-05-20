@@ -43,49 +43,58 @@ class StudentController extends Controller
      */
     public function store(Request $request)
     {
-      	$input = [
-			'student_name' => $request->student_name,
-			'student_surname' => $request->student_surname,
-			'student_group_title' => $request->student_group_title,
-			'student_project_title' => $request->student_project_title,
-		];
 		
-		$rules = [
-			'student_name' => 'required|string|max:100',
-			'student_surname' => 'required|string|max:100',
-			'student_group_title' => 'string|max:100|nullable',
-			'student_project_title' => 'string|max:100|nullable',
-		];
+		$csrf = $request->csrf;
 		
+		if( isset($csrf) && !empty($csrf) && $csrf == '123456789' ){		
+		
+			$input = [
+				'student_name' => $request->student_name,
+				'student_surname' => $request->student_surname,
+				'student_group_title' => $request->student_group_title,
+				'student_project_title' => $request->student_project_title,
+			];
+			
+			$rules = [
+				'student_name' => 'required|string|max:100',
+				'student_surname' => 'required|string|max:100',
+				'student_group_title' => 'string|max:100|nullable',
+				'student_project_title' => 'string|max:100|nullable',
+			];
+			
 
+			
+			$validator = Validator::make($input, $rules);
+			
+			if($validator->fails()){
+				
+				$errors = $validator->messages()->get('*');
+				return response()->json(array(
+					'error_message' => 'Error',
+					'errors' => $errors
+				));			
+				
+				
+			}else{
+				$student = new Student;
+				
+				$student->student_name = $request->student_name;
+				$student->student_surname = $request->student_surname;
+				$student->student_group_title = $request->student_group_title;
+				$student->student_project_title = $request->student_project_title;
+				
+				$student->save();
+				
+				return response()->json(array(
+					'success_message' => 'Student '.$student->student_name.' '.$student->student_surname.' successfully added to "'.$student->student_group_title.'"',
+				));
+			}
 		
-		$validator = Validator::make($input, $rules);
-		
-		if($validator->fails()){
-			
-			$errors = $validator->messages()->get('*');
-			return response()->json(array(
-				'error_message' => 'Error',
-				'errors' => $errors
-			));			
-			
-			
-		}else{
-			$student = new Student;
-			
-			$student->student_name = $request->student_name;
-			$student->student_surname = $request->student_surname;
-			$student->student_group_title = $request->student_group_title;
-			$student->student_project_title = $request->student_project_title;
-			
-			$student->save();
-			
-			return response()->json(array(
-				'success' => 'Student added',
-				'student_name' => $student->student_name,
-				'student_surname' => $student->student_surname
-			));
 		}
+		
+		return response()->json(array(
+			'error' => 'Autentification failed!'
+		));
     }
 
     /**
@@ -110,48 +119,56 @@ class StudentController extends Controller
      */
     public function update(Request $request, $id)
     {
-      	$input = [
-			'student_name' => $request->student_name,
-			'student_surname' => $request->student_surname,
-			'student_group_title' => $request->student_group_title,
-			'student_project_title' => $request->student_project_title,
-		];
+		$csrf = $request->csrf;
 		
-		$rules = [
-			'student_name' => 'required|string|max:100',
-			'student_surname' => 'required|string|max:100',
-			'student_group_title' => 'string|max:100|nullable',
-			'student_project_title' => 'string|max:100|nullable',
-		];
+		if( isset($csrf) && !empty($csrf) && $csrf == '123456789' ){
 		
+			$input = [
+				'student_name' => $request->student_name,
+				'student_surname' => $request->student_surname,
+				'student_group_title' => $request->student_group_title,
+				'student_project_title' => $request->student_project_title,
+			];
+			
+			$rules = [
+				'student_name' => 'required|string|max:100',
+				'student_surname' => 'required|string|max:100',
+				'student_group_title' => 'string|max:100|nullable',
+				'student_project_title' => 'string|max:100|nullable',
+			];
+			
 
+			
+			$validator = Validator::make($input, $rules);
+			
+			if($validator->fails()){
+				
+				$errors = $validator->messages()->get('*');
+				return response()->json(array(
+					'error_message' => 'Error',
+					'errors' => $errors
+				));			
+				
+				
+			}else{
+				$student = Student::find($id);
+				$student->student_name = $request->student_name;
+				$student->student_surname = $request->student_surname;
+				$student->student_group_title = $request->student_group_title;
+				$student->student_project_title = $request->student_project_title;
+				
+				$student->save();
+				
+				return response()->json(array(
+					'success_message' => 'Student '.$student->student_name.' '.$student->student_surname.' successfully added to "'.$student->student_group_title.'"',
+				));
+			}
 		
-		$validator = Validator::make($input, $rules);
-		
-		if($validator->fails()){
-			
-			$errors = $validator->messages()->get('*');
-			return response()->json(array(
-				'error_message' => 'Error',
-				'errors' => $errors
-			));			
-			
-			
-		}else{
-			$student = Student::find($id);
-			$student->student_name = $request->student_name;
-			$student->student_surname = $request->student_surname;
-			$student->student_group_title = $request->student_group_title;
-			$student->student_project_title = $request->student_project_title;
-			
-			$student->save();
-			
-			return response()->json(array(
-				'success' => 'Student added',
-				'student_name' => $student->student_name,
-				'student_surname' => $student->student_surname
-			));
 		}
+		
+		return response()->json(array(
+			'error' => 'Autentification failed!'
+		));
     }
 
     /**

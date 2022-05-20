@@ -50,22 +50,12 @@
 						<td><div id="student_surname_{{$student->id}}">{{$student->student_surname}}</div></td>
 						<td>
 							<div id="student_group_title_{{$student->id}}">
-								@foreach ($groups as $group)
-									@if($student->student_group_id == $group->id)
-										<input type="hidden" id="student_group_title_{{$student->id}}" value="{{$student->student_group_title}}">
-										<a href="{{route('group.show',[$group])}}">{{$group->group_title}}</a>
-									@endif
-								@endforeach
+									{{$student->student_group_title}}
 							</div>
 						</td>
 						<td>
 							<div id="student_project_title_{{$student->id}}">
-								@foreach ($projects as $project)
-									@if($student->student_project_id == $project->id)
-										<input type="hidden" id="student_project_title_{{$student->id}}" value="{{$student->student_project_title}}">
-										<a href="{{route('project.show',[$project])}}">{{$project->project_title}}</a>
-									@endif
-								@endforeach								
+									{{$student->student_project_title}}							
 							</div>
 						</td>
 						<td>
@@ -169,6 +159,8 @@
 			
 		});
 		
+		let csrf = '123456789';
+		
 		function clearValues(){
 			$('#edit_student').addClass("d-none");
 			$('#save_student').removeClass("d-none");
@@ -221,7 +213,7 @@
 				$.ajax({
 					type: 'POST',
 					url: 'http://127.0.0.1:8080/api/students',
-					data: {student_name:student_name, student_surname:student_surname, student_group_title:student_group_title, student_project_title:student_project_title},
+					data: {csrf:csrf,student_name:student_name, student_surname:student_surname, student_group_title:student_group_title, student_project_title:student_project_title},
 					success: function(data){
 						if($.isEmptyObject(data.error_message)){
 							$('#alert').removeClass("d-none");
@@ -265,7 +257,7 @@
 				$.ajax({
 					type: 'PUT',
 					url: 'http://127.0.0.1:8080/api/students/'+student_api_id,
-					data: {student_name:student_name, student_surname:student_surname, student_group_title:student_group_title, student_project_title:student_project_title},
+					data: {csrf:csrf,student_name:student_name, student_surname:student_surname, student_group_title:student_group_title, student_project_title:student_project_title},
 					success: function(data){
 						console.log(data);
 						if($.isEmptyObject(data.error_message)){
@@ -300,6 +292,7 @@
 				$.ajax({
 					type: 'DELETE',
 					url: 'http://127.0.0.1:8080/api/students/'+studentId,
+					data: {csrf:csrf},
 					success: function(data){
 						if($.isEmptyObject(data.error_message)){
 							runDataUpdate();

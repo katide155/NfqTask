@@ -8,6 +8,7 @@ use App\Models\Group;
 use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateProjectRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ProjectController extends Controller
 {
@@ -18,7 +19,17 @@ class ProjectController extends Controller
      */
     public function index()
     {
-		$projects = Project::orderBy('project_title')->paginate(20);
+	/*	'SELECT pr.*, count(st.student_project_title) as project_students
+FROM projects as pr
+LEFT JOIN students as st on pr.project_title = st.student_project_title
+group by pr.id'*/
+		
+		$projects = Project::select("projects.*", DB::raw('count(students.student_project_title) as project_students'))
+			->leftJoin('students', 'students.student_project_title', '=', 'projects.project_title')
+			->groupBy('projects.id')
+			->orderBy('projects.project_title', 'asc')->paginate(20);
+		
+
 		$groups = Group::all();
 		return view('projects.index', ['projects'=>$projects],['project'=>$groups]);
     }
@@ -141,6 +152,9 @@ class ProjectController extends Controller
     {
 		$projectGroups = $project->projectGroups; 
 		$projectStudents = $project->projectStudents;
+		
+		
+		$projectStudents = Student::where('student_project_title', '=', $project->project_title)->orderBy('student_surname')->paginate(20);
 		
 		$students = Student::all();
 
