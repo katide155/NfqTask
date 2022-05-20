@@ -135,4 +135,15 @@ class ProjectController extends Controller
         $project->delete();
 		return redirect()->route('project.index')->with('success_message', 'Project successfully deleted.');
     }
+	
+	
+	public function status(Request $request, Project $project)
+    {
+		$projectGroups = $project->projectGroups; 
+		$projectStudents = $project->projectStudents;
+		
+		$students = Student::all();
+
+		return view('projects.status', ['project'=>$project, 'projectGroups'=>$projectGroups,'projectStudents'=>$projectStudents, 'students'=>$students]);
+    }
 }

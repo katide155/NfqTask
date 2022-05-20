@@ -35,7 +35,7 @@
 				  </div>
 				</div>
 			</div>
-			@csrf  
+			 
 			<div class="modal-footer">
 				<a class="btn btn-secondary" href="{{route('project.index')}}">Back to list</a>
 			</div>

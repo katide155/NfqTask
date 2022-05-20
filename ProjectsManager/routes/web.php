@@ -48,6 +48,7 @@ Route::prefix('projects')->group(function(){
 	Route::post('destroy/{project}', 'App\Http\Controllers\ProjectController@destroy')->name('project.destroy')->middleware('auth');
 	//show
 	Route::get('show/{project}', 'App\Http\Controllers\ProjectController@show')->name('project.show')->middleware('auth');	
+	Route::get('status/{project}', 'App\Http\Controllers\ProjectController@status')->name('project.status')->middleware('auth');
 });
 
 Route::prefix('groups')->group(function(){

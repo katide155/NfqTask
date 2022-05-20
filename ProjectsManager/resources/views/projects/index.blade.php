@@ -72,6 +72,7 @@
 							<button type="submit" name="delete_project" class="btn btn-dangeris dbfl delete-item act-item">x<span class="tooltipas">Delete</span></button>
 						</form>
 						<a  type="button" href="{{route('project.show',[$project])}}" class="btn btn-primary dbfl show-item act-item"><span class="tooltipas">Show</span></a>
+						<a  type="button" href="{{route('project.status',[$project])}}" class="btn btn-warning dbfl status-item act-item"><span class="tooltipas">Status</span></a>
 					</div>
 				</td>
 			  </tr>

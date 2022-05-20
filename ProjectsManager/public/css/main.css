@@ -96,12 +96,20 @@ body {
 	width: 21px;
 	height: 20px;
 }
+.status-item{
+	background: #ffc107  url("../images/icons/search.png") no-repeat center center;
+	width: 21px;
+	height: 20px;
+}
+.btn-warning {
+  color: #fff;
+}
 .tooltipas{
   visibility: hidden;
   width: 60px;
   height: 22px;
   background-color: inherit;
-  color: inherit;
+  color: white;
   border-radius: 10px;
   padding: 2px;
   font-size: 13px;
