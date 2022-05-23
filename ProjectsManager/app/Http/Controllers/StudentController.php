@@ -19,7 +19,7 @@ class StudentController extends Controller
      */
     public function index()
     {
-		//$this->loadDataFromApi();
+		$this->loadDataFromApi();
 		$groups = Group::all();
 		$projects = Project::all();
 		$students = Student::paginate(20);
@@ -44,63 +44,7 @@ class StudentController extends Controller
      */
     public function store(Request $request)
     {
-		
-			$this->loadDataFromApi();
-			
-			return redirect()->route('student.index');
-			
-			
-       /*	$data = [
-			'student_name' => $request->student_name,
-			'student_surname' => $request->student_surname,
-			'student_group_title' => $request->student_group_title,
-			'student_project_title' => $request->student_project_title,
-		];
-		
-		
-		$rules = [
-			'student_name' => 'required|string|max:100',
-			'student_surname' => 'required|string|max:100',
-			'student_group_title' => 'string|max:100|nullable',
-			'student_project_title' => 'string|max:100|nullable',
-		];
 
-	
-		$validator = Validator::make($data, $rules);
-		
-		if($validator->fails()){
-			
-			$errors = $validator->messages()->get('*');
-			return response()->json(array(
-				'error_message' => 'Error',
-				'errors' => $errors
-			));	
-			
-		}else{
-
-			$curl = curl_init();
-			curl_setopt_array($curl, array(
-				CURLOPT_URL => "http://127.0.0.1:8080/api/students",
-				CURLOPT_CUSTOMREQUEST => "POST",
-				CURLOPT_ENCODING => "",
-				CURLOPT_TIMEOUT => 30000,
-				CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-				CURLOPT_RETURNTRANSFER => true,
-				CURLOPT_POSTFIELDS => json_encode($data),
-				CURLOPT_HTTPHEADER => array(
-					'Content-Type: application/json',
-				),
-			));
-			
-			$response = curl_exec($curl);
-			$err = curl_error($curl);
-			curl_close($curl);
-			$this->loadDataFromApi();
-			
-			return redirect()->route('student.index');
-		}
-		
-		*/
     }
 
     /**

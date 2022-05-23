@@ -10,18 +10,10 @@
 	<div class="row">
 		<div class="col-12">
 		
-			@if(session()->has('error_message'))
-				<div class="alert alert-danger">
-					{{session()->get('error_message')}}
+				<div id="alert" class="alert d-none">
 				</div>
-			@endif
-			@if(session()->has('success_message'))
-				<div class="alert alert-success">
-					{{session()->get('success_message')}}
-				</div>
-			@endif
 			
-			@if(0)
+			@if(!count($students))
 				<p>No students are on the list</p>
 				{{-- <p><a href="{{route('student.create')}}">Sukurti naują įrašą</a></p> --}}
 			@else
@@ -215,8 +207,13 @@
 					url: 'http://127.0.0.1:8080/api/students',
 					data: {csrf:csrf,student_name:student_name, student_surname:student_surname, student_group_title:student_group_title, student_project_title:student_project_title},
 					success: function(data){
+						
+						$('#alert').removeClass("alert-success");
+						$('#alert').removeClass("alert-danger");	
+						
 						if($.isEmptyObject(data.error_message)){
 							$('#alert').removeClass("d-none");
+							$('#alert').addClass("alert-success"); 
 							$('#alert').html(data.success_message);
 							
 							$('#exampleModal').hide();
@@ -227,7 +224,6 @@
 							$('#student_name').val('');
 							$('#student_surname').val('');
 							$('#student_project_title').val('');
-							runDataUpdate();
 							location.reload();
 						}else{						
 							$('.is-invalid').removeClass('is-invalid');
@@ -259,9 +255,11 @@
 					url: 'http://127.0.0.1:8080/api/students/'+student_api_id,
 					data: {csrf:csrf,student_name:student_name, student_surname:student_surname, student_group_title:student_group_title, student_project_title:student_project_title},
 					success: function(data){
-						console.log(data);
+							$('#alert').removeClass("alert-success");
+							$('#alert').removeClass("alert-danger");
 						if($.isEmptyObject(data.error_message)){
 							$('#alert').removeClass("d-none");
+							$('#alert').addClass("alert-success"); 
 							$('#alert').html(data.success_message);
 							
 							$('#exampleModal').hide();
@@ -271,8 +269,8 @@
 							
 							$('#student_name').val('');
 							$('#student_surname').val('');
+							$('#student_group_title').val('');
 							$('#student_project_title').val('');
-							runDataUpdate();
 							location.reload();
 						}else{						
 							$('.is-invalid').removeClass('is-invalid');
@@ -294,8 +292,12 @@
 					url: 'http://127.0.0.1:8080/api/students/'+studentId,
 					data: {csrf:csrf},
 					success: function(data){
+							$('#alert').removeClass("alert-success");
+							$('#alert').removeClass("alert-danger");
 						if($.isEmptyObject(data.error_message)){
-							runDataUpdate();
+							$('#alert').removeClass("d-none");
+							$('#alert').addClass("alert-success"); 
+							$('#alert').html(data.success_message);
 							location.reload();	
 						}
 					}
@@ -304,12 +306,7 @@
 			
 			});
 			
-			function runDataUpdate(){
-				$.ajax({
-					type: 'POST',
-					url: '{{route("student.store")}}'
-				});
-			};
+
 		});
 	</script>
 

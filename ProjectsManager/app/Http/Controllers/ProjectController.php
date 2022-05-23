@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Project;
 use App\Models\Student;
 use App\Models\Group;
+use App\Http\Controllers\StudentController;
 use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateProjectRequest;
 use Illuminate\Http\Request;
@@ -23,6 +24,8 @@ class ProjectController extends Controller
 FROM projects as pr
 LEFT JOIN students as st on pr.project_title = st.student_project_title
 group by pr.id'*/
+
+		StudentController::loadDataFromApi();
 		
 		$projects = Project::select("projects.*", DB::raw('count(students.student_project_title) as project_students'))
 			->leftJoin('students', 'students.student_project_title', '=', 'projects.project_title')
@@ -122,11 +125,125 @@ group by pr.id'*/
 			"max_number_students_in_group" => "required|min:1|max:100|integer",
 		]);	
 		
+		
+		
+		if($project->project_title != $request->project_title)
+		{
+			$students = Student::where('student_project_title', '=', $project->project_title)->get();
+		
+			if($students){
+				foreach($students as $student){
+					
+					
+					$data = [
+						'student_name' => $student->student_name,
+						'student_surname' => $student->student_surname,
+						'student_project_title' => $request->project_title,
+						'csrf' => '123456789'
+					];			
+				
+					$id = $student->api_student_id;
+					
+					$curl = curl_init();
+					curl_setopt_array($curl, array(
+						CURLOPT_URL => "http://127.0.0.1:8080/api/students/".$id,
+						CURLOPT_CUSTOMREQUEST => "PUT",
+						CURLOPT_ENCODING => "",
+						CURLOPT_TIMEOUT => 30000,
+						CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+						CURLOPT_RETURNTRANSFER => true,
+						CURLOPT_POSTFIELDS => json_encode($data),
+						CURLOPT_HTTPHEADER => array(
+							'Content-Type: application/json',
+						),
+					));
+				
+					$response = curl_exec($curl);
+					$err = curl_error($curl);
+					curl_close($curl);
+					
+				}
+			
+				StudentController::loadDataFromApi();
+			}
+		}
+		
+		
+		if($project->number_of_groups > $request->number_of_groups){
+			
+			$limit = $project->number_of_groups - $request->number_of_groups;
+			$offset = $request->number_of_groups;
+			
+			$groups = Group::where('group_project_id', '=', $project->id)->offset($offset)->limit($limit)->get();
+			
+		
+			foreach ($groups as $group){
+				
+				$groupStudents = Student::where('student_group_title', '=', $group->group_title)->get();
+		
+				if($groupStudents){
+					foreach($groupStudents as $student){
+						
+						
+						$data = [
+							'student_name' => $student->student_name,
+							'student_surname' => $student->student_surname,
+							'student_group_title' => null,
+							'student_project_title' => null,
+							'csrf' => '123456789'
+						];			
+					
+						$id = $student->api_student_id;
+						
+						$curl = curl_init();
+						curl_setopt_array($curl, array(
+							CURLOPT_URL => "http://127.0.0.1:8080/api/students/".$id,
+							CURLOPT_CUSTOMREQUEST => "PUT",
+							CURLOPT_ENCODING => "",
+							CURLOPT_TIMEOUT => 30000,
+							CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+							CURLOPT_RETURNTRANSFER => true,
+							CURLOPT_POSTFIELDS => json_encode($data),
+							CURLOPT_HTTPHEADER => array(
+								'Content-Type: application/json',
+							),
+						));
+					
+						$response = curl_exec($curl);
+						$err = curl_error($curl);
+						curl_close($curl);
+						
+					}
+				
+					StudentController::loadDataFromApi();
+				}
+				$group->delete();
+			}
+		}
+		if($project->number_of_groups < $request->number_of_groups){
+			
+
+			$project_title = $request->project_title;
+
+			for($i=$project->number_of_groups; $i<$request->number_of_groups; $i++) {
+				$group = new Group;
+				$number = $i + 1;
+				$group_title = $project_title.' '.$number. 'group';
+				$group->group_title = $group_title;
+				$group->max_number_students_in_group = $request->max_number_students_in_group;
+				$group->group_project_id = $project->id;
+
+				$group->save();
+			}
+		}
 		$project->project_title = $request->project_title;
 		$project->number_of_groups = $request->number_of_groups;
 		$project->max_number_students_in_group = $request->max_number_students_in_group;
 	
 		$project->save();
+		
+		
+		
 		return redirect()->route('project.index');
     }
 
@@ -150,13 +267,43 @@ group by pr.id'*/
 	
 	public function status(Request $request, Project $project)
     {
-		$projectGroups = $project->projectGroups; 
+		StudentController::loadDataFromApi();
+		
+		//$projectGroups = $project->projectGroups; 
 		$projectStudents = $project->projectStudents;
-		
-		
+		$projectGroups = Group::select("groups.*", DB::raw('count(students.student_group_title) as number_of_students_in_group'))
+			->leftJoin('students', 'students.student_group_title', '=', 'groups.group_title')
+			->where('groups.group_project_id', '=', $project->id)
+			->groupBy('groups.id')
+			->orderBy('groups.group_title', 'asc')->get();		
+			
+	
+		$projectGroups = $projectGroups->toArray();
+		$groups = [];
+		foreach($projectGroups as $key => $projectGroup){
+			
+			$groupTitle = $projectGroup['group_title'];
+			$groups[$groupTitle] = $projectGroup;
+			$groupStudents=Student::where('student_group_title', '=', $groupTitle)->get();
+			$groupStudents = $groupStudents->toArray();
+			$groups[$groupTitle]['group_students'] = [];
+			foreach($groupStudents as $key => $groupStudent){
+					if($groupTitle == $groupStudent['student_group_title']){
+						$groupStudentApiId = $groupStudent['api_student_id'];
+						$groups[$groupTitle]['group_students'][$groupStudentApiId] = $groupStudent;
+					}
+			}
+			
+		}
+											// echo '<pre>';
+			// print_r($groupStudent);
+			// echo '</pre>';		
+		 // die;
+		 $projectGroups = $groups;
+		//dd($projectGroups);
 		$projectStudents = Student::where('student_project_title', '=', $project->project_title)->orderBy('student_surname')->paginate(20);
 		
-		$students = Student::all();
+		$students = Student::where('student_project_title', '=', null)->where('student_group_title', '=', null)->orderBy('student_surname')->get();
 
 		return view('projects.status', ['project'=>$project, 'projectGroups'=>$projectGroups,'projectStudents'=>$projectStudents, 'students'=>$students]);
     }

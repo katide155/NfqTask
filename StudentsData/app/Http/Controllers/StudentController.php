@@ -159,8 +159,14 @@ class StudentController extends Controller
 				
 				$student->save();
 				
+				$actionMsg = 'edited';
+				if($request->action == 'remove')
+					$actionMsg = 'removed from group'; 
+				if($request->action == 'add')
+					$actionMsg = 'added to group'; 
+				
 				return response()->json(array(
-					'success_message' => 'Student '.$student->student_name.' '.$student->student_surname.' successfully added to "'.$student->student_group_title.'"',
+					'success_message' => 'Student '.$student->student_name.' '.$student->student_surname.' successfully '.$actionMsg,
 				));
 			}
 		
@@ -183,7 +189,7 @@ class StudentController extends Controller
 		$student->delete();
 		
 		return response()->json(array(
-			'successMessage' => 'Student deleted'
+			'success_message' => 'Student successfully deleted'
 		));
     }
 }

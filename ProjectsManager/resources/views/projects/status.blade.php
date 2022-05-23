@@ -81,18 +81,33 @@
 						<div class="col-sm-4 pb-5">
 							<div class="card" style="width: 18rem;">
 								<div class="card-header">
-									{{$group->group_title}}
+									{{$group['group_title']}}
 								</div>
 								<ul class="list-group list-group-flush">
-									@for($x = 1; $x <= $group->max_number_students_in_group; $x++)
+									@if($group['group_students'])
+									@foreach ($group['group_students'] as $student)
 									<li class="list-group-item">
-										<select class="form-select form-select-sm assign-student-to-group" group-title="{{$group->group_title}}" project-title="{{$project->project_title}}"aria-label=".form-select-sm example">
-											<option selected>Assign student to group</option>
-											@foreach ($students as $student)
-												<option value="{{$student->api_student_id}}">{{$student->student_name}} {{$student->student_surname}}</option>
-											@endforeach
-										</select>
+										<div class="row g-1 align-items-center">
+											<div class="col-11">
+												<input class="form-control form-control-sm" type="text" value="{{$student['student_name']}} {{$student['student_surname']}}" aria-label="readonly input example" readonly>
+											</div>
+											<div class="col-1">
+												<button type="submit" name="delete_student" class="btn btn-dangeris dbfl delete-item act-item remove-student" student="{{$student['student_name']}} {{$student['student_surname']}}" student-id="{{$student['api_student_id']}}">x<span class="tooltipas">Remove</span></button>
+											</div>
+										</div>
 									</li>
+									@endforeach
+									@endif
+							
+									@for($x = 1; $x <= ($group['max_number_students_in_group'] - $group['number_of_students_in_group']); $x++)
+										<li class="list-group-item">
+											<select class="form-select form-select-sm assign-student-to-group" group-title="{{$group['group_title']}}" project-title="{{$project->project_title}} "aria-label=".form-select-sm example">
+												<option selected>Assign student to group</option>
+												@foreach ($students as $student)
+													<option value="{{$student->api_student_id}}">{{$student->student_name}} {{$student->student_surname}}</option>
+												@endforeach
+											</select>
+										</li>
 									@endfor
 								</ul>
 							</div>
@@ -105,6 +120,7 @@
 			<script>
 			
 			let csrf = '123456789';
+
 			
 			$(document).ready(function(){
 
@@ -118,13 +134,13 @@
 					let student_surname = name_surname[1];
 					let student_group_title = $(this).attr('group-title');
 					let student_project_title = $(this).attr('project-title');
-					
+					let action = "add";
 					
 			
 					$.ajax({
 						type: 'PUT',
 						url: 'http://127.0.0.1:8080/api/students/'+student_id,
-						data: {csrf:csrf, student_id:student_id, student_name:student_name, student_surname:student_surname, student_group_title:student_group_title, student_project_title:student_project_title},
+						data: {csrf:csrf, student_id:student_id, student_name:student_name, student_surname:student_surname, student_group_title:student_group_title, student_project_title:student_project_title, action:action},
 						success: function(data){
 							
 							$('#alert').removeClass("alert-success");
@@ -134,7 +150,51 @@
 									$('#alert').removeClass("d-none");
 									$('#alert').addClass("alert-success"); 
 									$('#alert').html(data.success_message);
+									location.reload();						
+							}else{
+									$('#alert').removeClass("d-none");
+									$('#alert').addClass("alert-danger");
+									let error_massages;
+									$.each(data.errors, function(key, error){
+										error_massages += '<span>'+error+'</span></br>';
+									});
+									$('#alert').html(error_massages);
+							}
 							
+
+						}
+						
+					});
+					
+				});
+				
+				$(document).on('click', '.remove-student', function(){	
+
+
+					let student_id = $(this).attr('student-id');
+					let student_name_surname = $(this).attr('student');
+					const name_surname = student_name_surname.split(" ");
+					let student_name = name_surname[0];
+					let student_surname = name_surname[1];
+					let student_group_title = null;
+					let student_project_title = null;
+					let action = "remove";
+					
+			
+					$.ajax({
+						type: 'PUT',
+						url: 'http://127.0.0.1:8080/api/students/'+student_id,
+						data: {csrf:csrf, student_id:student_id, student_name:student_name, student_surname:student_surname, student_group_title:student_group_title, student_project_title:student_project_title, action:action},
+						success: function(data){
+							
+							$('#alert').removeClass("alert-success");
+							$('#alert').removeClass("alert-danger");
+							//console.log(data.success_message);
+							if($.isEmptyObject(data.error_message)){
+									$('#alert').removeClass("d-none");
+									$('#alert').addClass("alert-success"); 
+									$('#alert').html(data.success_message);
+									location.reload();							
 							}else{
 									$('#alert').removeClass("d-none");
 									$('#alert').addClass("alert-danger");
