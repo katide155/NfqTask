@@ -133,6 +133,8 @@ return [
     | this array to grant expanded functionality to your applications.
     |
     */
+	
+	 'api_students_link' => env('API_STUDENTS_LINK', 'Link'),
 
     'providers' => [
 

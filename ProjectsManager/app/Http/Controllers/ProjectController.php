@@ -119,6 +119,9 @@ group by pr.id'*/
      */
     public function update(Request $request, Project $project)
     {
+		
+		$api_student_link =  config('app.api_students_link');
+		
 		$request->validate([
 			"project_title" => "required|min:2|max:50|string",
 			"number_of_groups" => "required|min:1|max:50|integer",
@@ -139,6 +142,7 @@ group by pr.id'*/
 						'student_name' => $student->student_name,
 						'student_surname' => $student->student_surname,
 						'student_project_title' => $request->project_title,
+						'student_group_title' => $student->student_group_title,
 						'csrf' => '123456789'
 					];			
 				
@@ -146,7 +150,7 @@ group by pr.id'*/
 					
 					$curl = curl_init();
 					curl_setopt_array($curl, array(
-						CURLOPT_URL => "http://127.0.0.1:8080/api/students/".$id,
+						CURLOPT_URL => $api_student_link.'/'.$id,
 						CURLOPT_CUSTOMREQUEST => "PUT",
 						CURLOPT_ENCODING => "",
 						CURLOPT_TIMEOUT => 30000,
@@ -197,7 +201,7 @@ group by pr.id'*/
 						
 						$curl = curl_init();
 						curl_setopt_array($curl, array(
-							CURLOPT_URL => "http://127.0.0.1:8080/api/students/".$id,
+							CURLOPT_URL => $api_student_link.'/'.$id,
 							CURLOPT_CUSTOMREQUEST => "PUT",
 							CURLOPT_ENCODING => "",
 							CURLOPT_TIMEOUT => 30000,
@@ -255,8 +259,50 @@ group by pr.id'*/
      */
     public function destroy(Project $project)
     {
+		$api_student_link =  config('app.api_students_link');
+		
 		$projectGroups = $project->projectGroups; 
 		foreach ($projectGroups as $projectGroup){
+				
+				$groupStudents = Student::where('student_group_title', '=', $projectGroup->group_title)->get();
+		
+				if($groupStudents){
+					foreach($groupStudents as $student){
+						
+						
+						$data = [
+							'student_name' => $student->student_name,
+							'student_surname' => $student->student_surname,
+							'student_group_title' => null,
+							'student_project_title' => null,
+							'csrf' => '123456789'
+						];			
+					
+						$id = $student->api_student_id;
+						
+						$curl = curl_init();
+						curl_setopt_array($curl, array(
+							CURLOPT_URL => $api_student_link.'/'.$id,
+							CURLOPT_CUSTOMREQUEST => "PUT",
+							CURLOPT_ENCODING => "",
+							CURLOPT_TIMEOUT => 30000,
+							CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+							CURLOPT_RETURNTRANSFER => true,
+							CURLOPT_POSTFIELDS => json_encode($data),
+							CURLOPT_HTTPHEADER => array(
+								'Content-Type: application/json',
+							),
+						));
+					
+						$response = curl_exec($curl);
+						$err = curl_error($curl);
+						curl_close($curl);
+						
+					}
+				
+					StudentController::loadDataFromApi();
+				}
+			
 			$projectGroup->delete();
 		}
 		
@@ -270,7 +316,7 @@ group by pr.id'*/
 		StudentController::loadDataFromApi();
 		
 		//$projectGroups = $project->projectGroups; 
-		$projectStudents = $project->projectStudents;
+		//$projectStudents = $project->projectStudents;
 		$projectGroups = Group::select("groups.*", DB::raw('count(students.student_group_title) as number_of_students_in_group'))
 			->leftJoin('students', 'students.student_group_title', '=', 'groups.group_title')
 			->where('groups.group_project_id', '=', $project->id)
@@ -307,4 +353,37 @@ group by pr.id'*/
 
 		return view('projects.status', ['project'=>$project, 'projectGroups'=>$projectGroups,'projectStudents'=>$projectStudents, 'students'=>$students]);
     }
+	
+		public function addgroup(Request $request)
+    {
+		$projectId = $request->project_id;
+		
+		if( isset($projectId) && !empty($projectId) ){
+			
+
+			$groupProject = Project::find($projectId);
+			$number_of_groups = $groupProject->number_of_groups;
+			$new_number_of_groups = $number_of_groups + 1;
+
+			Project::where('id', $projectId)->update(['number_of_groups' => $new_number_of_groups]);
+			
+			$group = new Group;
+			$number = $new_number_of_groups;
+			$group_title = $groupProject->project_title.' '.$number. 'group';
+			$group->group_title = $group_title;
+			$group->max_number_students_in_group = $groupProject->max_number_students_in_group;
+			$group->group_project_id = $projectId;	
+			
+			$group->save();
+			
+			return response()->json(array(
+				'success_message' => 'Group added.',				
+			));
+		
+		}
+
+		return response()->json(array(
+			'errors' => 'error message'
+		));
+	}
 }

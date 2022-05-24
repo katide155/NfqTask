@@ -9,6 +9,7 @@ use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\UpdateStudentRequest;
 use Illuminate\Http\Request;
 use Validator;
+use Illuminate\Support\Facades\DB;
 
 class StudentController extends Controller
 {
@@ -20,7 +21,14 @@ class StudentController extends Controller
     public function index()
     {
 		$this->loadDataFromApi();
-		$groups = Group::all();
+		
+		$groups = Group::select("groups.*", DB::raw('count(students.student_group_title) as number_of_students_in_group'))
+			->leftJoin('students', 'students.student_group_title', '=', 'groups.group_title')
+			->where('groups.max_number_students_in_group', '>', 'number_of_students_in_group')
+			->groupBy('groups.id')
+			->orderBy('groups.group_title', 'asc')->get();
+		
+		//$groups = Group::all();
 		$projects = Project::all();
 		$students = Student::paginate(20);
         return view('students.index',['students'=> $students, 'groups'=> $groups, 'projects'=> $projects]);
@@ -78,55 +86,7 @@ class StudentController extends Controller
      */
     public function update(Request $request, Student $student)
     {
-       	$data = [
-			'student_name' => $request->student_name,
-			'student_surname' => $request->student_surname,
-			'student_group_title' => $request->student_group_title,
-			'student_project_title' => $request->student_project_title,
-		];
-		
-		
-		$rules = [
-			'student_name' => 'required|string|max:100',
-			'student_surname' => 'required|string|max:100',
-			'student_group_title' => 'string|max:100|nullable',
-			'student_project_title' => 'string|max:100|nullable',
-		];
 
-	
-		$validator = Validator::make($data, $rules);
-		
-		if($validator->fails()){
-			
-			$errors = $validator->messages()->get('*');
-			return response()->json(array(
-				'error_message' => 'Error',
-				'errors' => $errors
-			));	
-			
-		}else{
-
-			$curl = curl_init();
-			curl_setopt_array($curl, array(
-				CURLOPT_URL => "http://127.0.0.1:8080/api/students/".$request->student_api_id,
-				CURLOPT_CUSTOMREQUEST => "PUT",
-				CURLOPT_ENCODING => "",
-				CURLOPT_TIMEOUT => 30000,
-				CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-				CURLOPT_RETURNTRANSFER => true,
-				CURLOPT_POSTFIELDS => json_encode($data),
-				CURLOPT_HTTPHEADER => array(
-					'Content-Type: application/json',
-				),
-			));
-			
-			$response = curl_exec($curl);
-			$err = curl_error($curl);
-			curl_close($curl);
-			$this->loadDataFromApi();
-			
-			return redirect()->route('student.index');
-		}
     }
 
     /**
@@ -142,9 +102,11 @@ class StudentController extends Controller
 	
 	public function loadDataFromApi(){
 		
+		$api_student_link =  config('app.api_students_link');
+		
 		$curl = curl_init();
 		curl_setopt_array($curl, array(
-			CURLOPT_URL => "http://127.0.0.1:8080/api/students?csrf=123456789&allList=all",
+			CURLOPT_URL => $api_student_link."?csrf=123456789&allList=all",
 			CURLOPT_CUSTOMREQUEST => "GET",
 			CURLOPT_ENCODING => "",
 			CURLOPT_TIMEOUT => 30000,
@@ -178,4 +140,34 @@ class StudentController extends Controller
 			$newStudent->save();
 		};
 	}
+	
+	
+	public function change(Request $request)
+    {
+		
+		$projectId = $request->project_id;
+		
+		if( isset($projectId) && !empty($projectId) ){
+			
+		$groups = Group::select("groups.*", DB::raw('count(students.student_group_title) as number_of_students_in_group'))
+			->leftJoin('students', 'students.student_group_title', '=', 'groups.group_title')
+			->where('groups.max_number_students_in_group', '>', 'number_of_students_in_group')
+			->where('groups.group_project_id', '=', $projectId)
+			->groupBy('groups.id')
+			->orderBy('groups.group_title', 'asc')->get();
+			
+			
+			return response()->json(array(
+				'projectGroups' => $projectGroups				
+			));
+		
+		}
+
+		return response()->json(array(
+			'error' => 'error message'
+		));
+		
+        
+    }
+	
 }

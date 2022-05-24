@@ -33,6 +33,7 @@ Route::prefix('students')->group(function(){
 	Route::post('update/{id}', 'App\Http\Controllers\StudentController@update')->name('student.update')->middleware('auth');
 	Route::get('show/{id}', 'App\Http\Controllers\StudentController@show')->name('student.show')->middleware('auth');
 	Route::post('delete/{id}', 'App\Http\Controllers\StudentController@destroy')->name('student.delete')->middleware('auth');
+	Route::post('change', 'App\Http\Controllers\StudentController@change')->name('student.change')->middleware('auth');
 });
 
 Route::prefix('projects')->group(function(){
@@ -49,6 +50,7 @@ Route::prefix('projects')->group(function(){
 	//show
 	Route::get('show/{project}', 'App\Http\Controllers\ProjectController@show')->name('project.show')->middleware('auth');	
 	Route::get('status/{project}', 'App\Http\Controllers\ProjectController@status')->name('project.status')->middleware('auth');
+	Route::post('addgroup', 'App\Http\Controllers\ProjectController@addgroup')->name('project.addgroup')->middleware('auth');
 });
 
 Route::prefix('groups')->group(function(){

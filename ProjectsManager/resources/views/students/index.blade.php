@@ -41,12 +41,12 @@
 						</td>
 						<td><div id="student_surname_{{$student->id}}">{{$student->student_surname}}</div></td>
 						<td>
-							<div id="student_group_title_{{$student->id}}">
+							<div id="student_group_title_{{$student->id}}" student-group="{{$student->student_group_title}}">
 									{{$student->student_group_title}}
 							</div>
 						</td>
 						<td>
-							<div id="student_project_title_{{$student->id}}">
+							<div id="student_project_title_{{$student->id}}" student-project="{{$student->student_project_title}}">
 									{{$student->student_project_title}}							
 							</div>
 						</td>
@@ -55,8 +55,7 @@
 								<button type="button" class="btn btn-success dbfl edit-item act-item" data-bs-id="1" data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="setIdToEdit({{$student->id}})">
 									..<span class="tooltipas">Edit</span>
 								</button>
-								<button type="submit" name="delete_child" class="btn btn-dangeris dbfl delete-student act-item" student_api_id="{{$student->api_student_id}}">x<span class="tooltipas">Delete</span></button>
-								<a  type="button" href="{{route('student.show',[$student])}}" class="btn btn-primary dbfl show-item act-item"><span class="tooltipas">Show</span></a>
+								<button type="button" name="delete_child" class="btn btn-dangeris dbfl delete-student act-item" student_api_id="{{$student->api_student_id}}">x<span class="tooltipas">Delete</span></button>
 							</div>
 						</td>
 					</tr>
@@ -100,30 +99,30 @@
 						<div class="modal-body">
 							<div class="row g-3 align-items-center">
 							  <div class="col-4">
-								<label for="student_group_title" class="col-form-label">Student group</label>
+								<label for="student_project_title" class="col-form-label">Student project</label>
 							  </div>
 								<div class="col-8">
-									<select id="student_group_title" class="form-control" aria-label=".form-select-sm example" name="student_group_title">
-										@foreach ($groups as $group)
-										<option value="{{$group->group_title}}">{{$group->group_title}}</option>
+									<select id="student_project_title" class="form-select" aria-label=".form-select-sm example" name="student_project_title">
+										@foreach ($projects as $project)
+											<option project-id="{{$project->id}}" value="{{$project->project_title}}">{{$project->project_title}}</option>
 										@endforeach
 									</select>
-									<span class="invalid-feedback input_student_group_title" role="alert"></span>
+									<span class="invalid-feedback input_student_project_title" role="alert"></span>
 								</div>
 							</div>
 						</div>
 						<div class="modal-body">
 							<div class="row g-3 align-items-center">
 							  <div class="col-4">
-								<label for="student_project_title" class="col-form-label">Student project</label>
+								<label for="student_group_title" class="col-form-label">Student group</label>
 							  </div>
 								<div class="col-8">
-									<select id="student_project_title" class="form-control" aria-label=".form-select-sm example" name="student_project_title">
-										@foreach ($projects as $project)
-										<option value="{{$project->project_title}}">{{$project->project_title}}</option>
+									<select id="student_group_title" class="form-select" aria-label=".form-select-sm example" name="student_group_title">
+										@foreach ($groups as $group)
+										<option value="{{$group->group_title}}">{{$group->group_title}}</option>
 										@endforeach
 									</select>
-									<span class="invalid-feedback input_student_project_title" role="alert"></span>
+									<span class="invalid-feedback input_student_group_title" role="alert"></span>
 								</div>
 							</div>
 						</div>
@@ -160,9 +159,9 @@
 			setElementValue('student_name', '');
 			setElementValue('student_surname', '');
 			setElementValue('student_group_title', '');
-			document.getElementById('student_group_title').selected = false;
+			//document.getElementById('student_group_title').selected = false;
 			setElementValue('student_project_title', '');
-			document.getElementById('student_project_title').selected = false;
+			//document.getElementById('student_project_title').selected = false;
 			$('.is-invalid').removeClass('is-invalid');
 		};
 		
@@ -180,10 +179,10 @@
 				setElementValue('student_name', student_name);
 				let student_surname = getElementInner('student_surname_' + id);
 				setElementValue('student_surname', student_surname);
-				let student_group_title = getElementValue('student_group_title_' + id);
-				document.getElementById('student_group_title').value = student_group_title;
-				let student_project_title = getElementValue('student_project_title_' + id);
-				document.getElementById('student_project_title').value = student_project_title;
+				let student_group_title = document.getElementById('student_group_title_'+id).getAttribute('student-group');
+				$('#student_group_title').val(student_group_title);
+				let student_project_title = document.getElementById('student_project_title_'+id).getAttribute('student-project');
+				$('#student_project_title').val(student_project_title);
 			}
 			
 		};
@@ -204,7 +203,7 @@
 		
 				$.ajax({
 					type: 'POST',
-					url: 'http://127.0.0.1:8080/api/students',
+					url: "{{ config('app.api_students_link') }}",
 					data: {csrf:csrf,student_name:student_name, student_surname:student_surname, student_group_title:student_group_title, student_project_title:student_project_title},
 					success: function(data){
 						
@@ -248,11 +247,11 @@
 				let student_surname = $('#student_surname').val();
 				let student_group_title = $('#student_group_title').val();
 				let student_project_title = $('#student_project_title').val();
-				console.log(student_api_id);
+				
 		
 				$.ajax({
 					type: 'PUT',
-					url: 'http://127.0.0.1:8080/api/students/'+student_api_id,
+					url: "{{ config('app.api_students_link') }}/"+student_api_id,
 					data: {csrf:csrf,student_name:student_name, student_surname:student_surname, student_group_title:student_group_title, student_project_title:student_project_title},
 					success: function(data){
 							$('#alert').removeClass("alert-success");
@@ -289,7 +288,7 @@
 				let	studentId = $(this).attr('student_api_id');
 				$.ajax({
 					type: 'DELETE',
-					url: 'http://127.0.0.1:8080/api/students/'+studentId,
+					url: "{{ config('app.api_students_link') }}/"+studentId,
 					data: {csrf:csrf},
 					success: function(data){
 							$('#alert').removeClass("alert-success");
@@ -306,6 +305,35 @@
 			
 			});
 			
+			
+			
+			$(document).on('change', '#student_project_title', function(){	
+			
+
+				let project_id = $('#student_project_title option:selected').attr('project-id');
+			
+				$.ajax({
+					type: 'POST',
+					url: "{{route('student.change')}}",
+					data: {project_id:project_id},
+					success: function(data){
+						
+						if($.isEmptyObject(data.error_message)){
+							
+							$('#student_group_title').empty();
+							let optionRow = '';
+							
+							$.each(data.projectGroups, function(key, group){
+								optionRow += '<option value="'+group.group_title+'">'+group.group_title+'</option>';
+								$('#student_group_title').append(optionRow);
+							});	
+							
+						}
+					}
+					
+				});
+			
+			});
 
 		});
 	</script>
