@@ -313,6 +313,8 @@ group by pr.id'*/
 	
 	public function status(Request $request, Project $project)
     {
+		header("refresh: 10");
+		
 		StudentController::loadDataFromApi();
 		
 		//$projectGroups = $project->projectGroups; 
