@@ -1,6 +1,6 @@
 # NfqTask
 
-ProjektManager is a simple project for managing projects.
+ProjectsManager is a simple project for managing projects.
 
 The project was developed using the Laravel framework. There are two projects implemented: one contains student data that is passed to the other project via the API.
 A MySQL database is used to store the data. Factories have been created for the student database that automatically fill the database for testing.
