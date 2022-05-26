@@ -14,7 +14,8 @@ class StudentFactory extends Factory
     public function definition()
     {
         return [
-            //
+            'student_name' => $this->faker->firstName(),
+			'student_surname' => $this->faker->lastName(),
         ];
     }
 }
