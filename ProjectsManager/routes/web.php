@@ -34,6 +34,7 @@ Route::prefix('students')->group(function(){
 	Route::get('show/{id}', 'App\Http\Controllers\StudentController@show')->name('student.show')->middleware('auth');
 	Route::post('delete/{id}', 'App\Http\Controllers\StudentController@destroy')->name('student.delete')->middleware('auth');
 	Route::post('change', 'App\Http\Controllers\StudentController@change')->name('student.change')->middleware('auth');
+	Route::post('refresh', 'App\Http\Controllers\StudentController@refresh')->name('student.refresh')->middleware('auth');
 });
 
 Route::prefix('projects')->group(function(){

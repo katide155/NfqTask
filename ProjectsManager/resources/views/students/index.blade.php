@@ -46,7 +46,7 @@
 							</div>
 						</td>
 						<td>
-							<div id="student_project_title_{{$student->id}}" student-project="{{$student->student_project_title}}">
+							<div id="student_project_title_{{$student->id}}" student-project="{{$student->student_project_title}}" student-project-id="{{$student->student_project_id}}">
 									{{$student->student_project_title}}							
 							</div>
 						</td>
@@ -117,7 +117,7 @@
 								<label for="student_group_title" class="col-form-label">Student group</label>
 							  </div>
 								<div class="col-8">
-									<select id="student_group_title" class="form-select" aria-label=".form-select-sm example" name="student_group_title">
+									<select id="student_group_title" class="form-select" student-group-title="" aria-label=".form-select-sm example" name="student_group_title">
 										@foreach ($groups as $group)
 										<option value="{{$group->group_title}}">{{$group->group_title}}</option>
 										@endforeach
@@ -180,18 +180,55 @@
 				let student_surname = getElementInner('student_surname_' + id);
 				setElementValue('student_surname', student_surname);
 				let student_group_title = document.getElementById('student_group_title_'+id).getAttribute('student-group');
-				let optionRow = '';
-				if(student_group_title){
-					optionRow = '<option value="'+student_group_title+'">'+student_group_title+'</option>';
-					$('#student_group_title').append(optionRow);
-					$('#student_group_title').val(student_group_title);
-				}
 				let student_project_title = document.getElementById('student_project_title_'+id).getAttribute('student-project');
-				if(student_project_title){
-					optionRow = '<option value="'+student_project_title+'">'+student_project_title+'</option>';
-					$('#student_project_title').append(optionRow);
-					$('#student_project_title').val(student_project_title);
+				let student_project_id = document.getElementById('student_project_title_'+id).getAttribute('student-project-id');
+				
+				if(student_project_title && student_group_title){
+				
+					$.ajax({
+						type: 'POST',
+						url: "{{route('student.refresh')}}",
+						data: {student_id:id},
+						success: function(data){
+							
+							if($.isEmptyObject(data.error_message)){
+								
+								$('#student_project_title').empty();
+								$('#student_group_title').empty();
+								
+								let optionRow = '';
+								
+								if(student_group_title){
+										optionRow = '<option value="'+student_group_title+'">'+student_group_title+'</option>';
+										$('#student_group_title').append(optionRow);
+									$.each(data.groups, function(key, group){
+										optionRow = '<option value="'+group.group_title+'">'+group.group_title+'</option>';
+										$('#student_group_title').append(optionRow);
+									});
+									$('#student_group_title').val(student_group_title);	
+									document.getElementById('student_group_title').selected = true;	
+									$('#student_group_title').attr("student-group-title", student_group_title);	
+								}
+								
+								if(student_project_title){
+										optionRow = '<option project-id="'+student_project_id+'" value="'+student_project_title+'">'+student_project_title+'</option>';
+										$('#student_project_title').append(optionRow);
+									$.each(data.projects, function(key, project){
+										if(student_project_id != project.id){
+											optionRow = '<option project-id="'+project.id+'" value="'+project.project_title+'">'+project.project_title+'</option>';
+											$('#student_project_title').append(optionRow);
+										}
+									});
+									$('#student_project_title').val(student_project_title);
+									document.getElementById('student_project_title').selected = true;
+								}
+							}
+						}
+						
+					});
+				
 				}
+				
 			}
 			
 		};
@@ -320,6 +357,8 @@
 			
 
 				let project_id = $('#student_project_title option:selected').attr('project-id');
+				let student_group_title = $('#student_group_title').attr('student-group-title');
+				console.log(student_group_title);
 			
 				$.ajax({
 					type: 'POST',
@@ -334,10 +373,14 @@
 							
 							let optionRow = '';
 							
-							$.each(data.projectGroups, function(key, group){
-								optionRow = '<option value="'+group.group_title+'">'+group.group_title+'</option>';
+							if(student_group_title){
+								optionRow = '<option value="'+student_group_title+'">'+student_group_title+'</option>';
 								$('#student_group_title').append(optionRow);
-							});	
+							}	
+								$.each(data.projectGroups, function(key, group){
+									optionRow = '<option value="'+group.group_title+'">'+group.group_title+'</option>';
+									$('#student_group_title').append(optionRow);
+								});	
 							
 						}
 					}

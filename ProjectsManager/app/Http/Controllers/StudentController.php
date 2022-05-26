@@ -56,7 +56,11 @@ class StudentController extends Controller
 
 				$projects = DB::select($sql);		
 
-		$students = Student::paginate(20);
+	   $students = Student::select("students.*","projects.id as student_project_id")
+			->leftJoin('projects', function($join){
+		   $join->on('projects.project_title', '=', 'students.student_project_title');
+	   })->orderBy('students.student_name')->paginate(20);
+		
         return view('students.index',['students'=> $students, 'groups'=> $groups, 'projects'=> $projects]);
     }
 
@@ -195,10 +199,42 @@ class StudentController extends Controller
 		}
 
 		return response()->json(array(
-			'error' => 'error message'
+			'error' => 'error'
 		));
 		
         
     }
+	
+	
+	public function refresh(Request $request)
+    {
+		
+		$studentId = $request->student_id;
+		
+		if( isset($studentId) && !empty($studentId) ){
+			
+			$sql = 'select * from (select groups.*, count(students.student_group_title) as number_of_students';
+			$sql .=' from groups left join students on students.student_group_title = groups.group_title group by groups.id) as gr';
+			$sql .=' where max_number_students_in_group > number_of_students order by group_title';
+
+			$groups = DB::select($sql);
+
+			$sql = 'select * from (select projects.*, count(students.student_project_title) as number_of_students, number_of_groups * max_number_students_in_group as max_number_students_in_project';
+			$sql .=	' from projects left join students on students.student_project_title = projects.project_title group by projects.id) as pr';
+			$sql .=	' where max_number_students_in_project > number_of_students order by project_title';
+
+			$projects = DB::select($sql);
+		
+			return response()->json(array(
+				'groups' => $groups,
+				'projects' => $projects				
+			));
+		
+		}
+
+		return response()->json(array(
+			'error' => 'error'
+		));
+	}
 	
 }
