@@ -7,7 +7,7 @@
 			<div class="row align-items-center homebuttons">
 				@auth
 					<div class="col homebuttdiv">
-						<a href="{{ route('/home') }}" class="pageLink">Log in</a>
+						<a href="{{ route('home') }}" class="pageLink">Log in</a>
 					</div>
 				@else
 					<div class="col homebuttdiv">

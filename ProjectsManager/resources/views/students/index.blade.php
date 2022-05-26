@@ -27,7 +27,7 @@
 						<th>Student group</th>
 						<th>Student project</th>
 						<th style="width: 180px;">
-							<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="clearValues()">Add new student</button>
+							<button type="button" class="btn btn-success" id="add-new-student" data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="clearValues()">Add new student</button>
 						</th>
 					</tr>
 				</thead>
@@ -52,7 +52,7 @@
 						</td>
 						<td>
 							<div class="btn-container">
-								<button type="button" class="btn btn-success dbfl edit-item act-item" data-bs-id="1" data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="setIdToEdit({{$student->id}})">
+								<button type="button" class="btn btn-success dbfl edit-item act-item" data-bs-id="1" data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="setStudentToEdit({{$student->id}})">
 									..<span class="tooltipas">Edit</span>
 								</button>
 								<button type="button" name="delete_child" class="btn btn-dangeris dbfl delete-student act-item" student_api_id="{{$student->api_student_id}}">x<span class="tooltipas">Delete</span></button>
@@ -159,20 +159,20 @@
 			setElementValue('student_name', '');
 			setElementValue('student_surname', '');
 			setElementValue('student_group_title', '');
-			//document.getElementById('student_group_title').selected = false;
 			setElementValue('student_project_title', '');
-			//document.getElementById('student_project_title').selected = false;
 			$('.is-invalid').removeClass('is-invalid');
 		};
 		
 
 		
-		function setIdToEdit(id){
+		function setStudentToEdit(id){
 			
 			if(id){
 				$('#save_student').addClass("d-none");
 				$('#edit_student').removeClass("d-none");
 				$('.is-invalid').removeClass('is-invalid');
+				setElementValue('student_group_title', '');
+				setElementValue('student_project_title', '');
 				let student_api_id = document.getElementById('student_api_id_'+id).getAttribute('student_api_id');
 				setElementValue('student_api_id', student_api_id);
 				let student_name = getElementInner('student_name_' + id);
@@ -180,9 +180,18 @@
 				let student_surname = getElementInner('student_surname_' + id);
 				setElementValue('student_surname', student_surname);
 				let student_group_title = document.getElementById('student_group_title_'+id).getAttribute('student-group');
-				$('#student_group_title').val(student_group_title);
+				let optionRow = '';
+				if(student_group_title){
+					optionRow = '<option value="'+student_group_title+'">'+student_group_title+'</option>';
+					$('#student_group_title').append(optionRow);
+					$('#student_group_title').val(student_group_title);
+				}
 				let student_project_title = document.getElementById('student_project_title_'+id).getAttribute('student-project');
-				$('#student_project_title').val(student_project_title);
+				if(student_project_title){
+					optionRow = '<option value="'+student_project_title+'">'+student_project_title+'</option>';
+					$('#student_project_title').append(optionRow);
+					$('#student_project_title').val(student_project_title);
+				}
 			}
 			
 		};
@@ -320,11 +329,13 @@
 						
 						if($.isEmptyObject(data.error_message)){
 							
+			
 							$('#student_group_title').empty();
+							
 							let optionRow = '';
 							
 							$.each(data.projectGroups, function(key, group){
-								optionRow += '<option value="'+group.group_title+'">'+group.group_title+'</option>';
+								optionRow = '<option value="'+group.group_title+'">'+group.group_title+'</option>';
 								$('#student_group_title').append(optionRow);
 							});	
 							

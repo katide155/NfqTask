@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Validator;
 use Illuminate\Support\Facades\DB;
 
+
 class StudentController extends Controller
 {
     /**
@@ -22,14 +23,39 @@ class StudentController extends Controller
     {
 		$this->loadDataFromApi();
 		
-		$groups = Group::select("groups.*", DB::raw('count(students.student_group_title) as number_of_students_in_group'))
-			->leftJoin('students', 'students.student_group_title', '=', 'groups.group_title')
-			->where('groups.max_number_students_in_group', '>', 'number_of_students_in_group')
-			->groupBy('groups.id')
-			->orderBy('groups.group_title', 'asc')->get();
 		
-		//$groups = Group::all();
-		$projects = Project::all();
+				$sql = 'select * from (select groups.*, count(students.student_group_title) as number_of_students';
+				$sql .=' from groups left join students on students.student_group_title = groups.group_title group by groups.id) as gr';
+				$sql .=' where max_number_students_in_group > number_of_students order by group_title';
+		
+				$groups = DB::select($sql);
+		
+		// $sub_query = DB::table("groups")
+			// ->leftJoin('students', 'students.student_group_title', '=', 'groups.group_title')->count('students.student_group_title')
+			// ->groupBy('groups.id');
+
+		// $groups = DB::table($sub_query, 'gr')
+		// ->where('max_number_students_in_group', '>', 'number_of_students')
+		// ->orderBy('groups.group_title')->get();
+		
+		
+		
+		// $groups = DB::table(DB::raw('(select groups.*, count(students.student_group_title) as number_of_students from groups left join students on students.student_group_title = groups.group_title group by groups.id))'). 'AS gr')
+
+    // ->where('gr.max_number_students_in_group', '>', 'gr.number_of_students')
+    // ->orderBy('gr.group_title')->get();
+
+		// $groups = Group::select(DB::raw('COUNT(*) as total, modality'))
+                // ->from(DB::raw('(SELECT modality AS modal, modality FROM series GROUP BY study_fk, modality) AS T'))
+                // ->groupBy('modality')
+				// ->get();
+
+				$sql = 'select * from (select projects.*, count(students.student_project_title) as number_of_students, number_of_groups * max_number_students_in_group as max_number_students_in_project';
+				$sql .=	' from projects left join students on students.student_project_title = projects.project_title group by projects.id) as pr';
+				$sql .=	' where max_number_students_in_project > number_of_students order by project_title';
+
+				$projects = DB::select($sql);		
+
 		$students = Student::paginate(20);
         return view('students.index',['students'=> $students, 'groups'=> $groups, 'projects'=> $projects]);
     }
@@ -156,7 +182,12 @@ class StudentController extends Controller
 			->groupBy('groups.id')
 			->orderBy('groups.group_title', 'asc')->get();
 			
-			
+			$sql = "select * from (select groups.*, count(students.student_group_title) as number_of_students";
+			$sql .= " from groups left join students on students.student_group_title = groups.group_title group by groups.id) as gr";
+			$sql .= " where max_number_students_in_group > number_of_students and group_project_id = $projectId order by group_title";
+		
+			$projectGroups = DB::select($sql);
+
 			return response()->json(array(
 				'projectGroups' => $projectGroups				
 			));
